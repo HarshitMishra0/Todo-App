@@ -1,3 +1,9 @@
+import { useEffect, useState } from "react";
+import {
+  deleteTodoApi,
+  retrieveAllTodosForUsername,
+} from "./api/TodoApiService";
+
 export default function ListTodosComponent() {
   const today = new Date();
   const targetDate = new Date(
@@ -6,28 +12,40 @@ export default function ListTodosComponent() {
     today.getDay()
   );
 
-  const todos = [
-    { id: 1, description: "Learn AWS", done: false, targetDate: targetDate },
-    {
-      id: 2,
-      description: "Learn Full Stack Dev",
-      done: false,
-      targetDate: targetDate,
-    },
-    { id: 3, description: "Learn DevOps", done: false, targetDate: targetDate },
-  ];
+  const [todos, setTodos] = useState([]);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => refreshTodos());
+
+  function refreshTodos() {
+    retrieveAllTodosForUsername("in28minutes")
+      .then((response) => {
+        setTodos(response.data);
+      })
+      .catch((error) => console.log(error));
+  }
+
+  function deleteTodo(id) {
+    deleteTodoApi("in28minutes", id)
+      .then(() => {
+        setMessage(`Delete of Todo with ${id} successful`);
+        refreshTodos();
+      })
+      .catch((error) => console.log(error));
+  }
 
   return (
     <div className="ListTodosComponent">
       <h1>Things you want to do! </h1>
+      <div className="alert alert-warning">{message}</div>
       <div>
         <table className="table">
           <thead>
             <tr>
-              <td>Id</td>
-              <td>Description</td>
-              <td>Is Done</td>
-              <td>Target Date</td>
+              <th>Description</th>
+              <th>Is Done</th>
+              <th>Target Date</th>
+              <th>Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -36,7 +54,16 @@ export default function ListTodosComponent() {
                 <td>{todo.id}</td>
                 <td>{todo.description}</td>
                 <td>{todo.done.toString()}</td>
-                <td>{todo.targetDate.toDateString()}</td>
+                <td>{todo.targetDate.toString()}</td>
+                <td>
+                  {" "}
+                  <button
+                    className="btn btn-warning "
+                    onClick={() => deleteTodo(todo.id)}
+                  >
+                    Delete
+                  </button>{" "}
+                </td>
               </tr>
             ))}
           </tbody>
