@@ -1,26 +1,31 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { retrieveHelloWorldBean } from "./api/HelloWorldApiService";
+import {
+  retrieveHelloWorldBean,
+  retrieveHelloWorldPathVariable,
+} from "./api/HelloWorldApiService";
+import { useAuth } from "./Security/AuthContext";
+
 export default function WelcomeComponent() {
   const { username } = useParams();
-
   const [message, setMessage] = useState(null);
+  const authContext = useAuth();
 
-  function callHelloWorldRestApi() {
-    retrieveHelloWorldBean()
-      .then((response) => successfullResponse(response))
+  const callHelloWorldRestApi = () => {
+    retrieveHelloWorldPathVariable(username, authContext.token)
+      .then((response) => successfulResponse(response))
       .catch((error) => errorResponse(error))
       .finally(() => console.log("cleanup"));
-  }
+  };
 
-  function successfullResponse(response) {
-    setMessage(response.data);
-  }
+  const successfulResponse = (response) => {
+    setMessage(response.data.message); // Assuming 'message' is a property of the response data
+  };
 
-  function errorResponse(error) {
+  const errorResponse = (error) => {
     console.error("Error in API call:", error);
     setMessage("Error occurred while calling the API");
-  }
+  };
 
   return (
     <div>
